@@ -118,9 +118,9 @@ class raw_data:
     data_features = {} # 資料特徵
     prob = {} # class值域的機率分佈
 
-    def __init__(self, file_path):
+    def __init__(self, sourceFile):
         self.reset()
-        self.raw_data = pd.read_csv(file_path)
+        self.raw_data = sourceFile
         self.create_features()
 
     def create_features(self):

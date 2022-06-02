@@ -1,4 +1,6 @@
 import pandas as pd
+from libs.chi_square_module import raw_data
+from operator import itemgetter
 
 
 
@@ -55,6 +57,7 @@ _summary_
 #測試執行ㄉ地方
 def main():
     sum=summary("./Weather-排序.csv")
+    sum.exportResult("./Weather-Summary.csv")
     #print(sum.getImcomRatio) #測試印出不相容率
     
     pass
@@ -64,6 +67,8 @@ class summary:
     
     def __init__(self,filePath) ->None:
         self.sourceCsv=pd.read_csv(filePath)
+        self.dataNums=0
+        self.attrNums=0
         pass
     
     
@@ -76,7 +81,7 @@ class summary:
         e.g: { "Weather-clean" : 0.11, "Weather/Temperature-clean" : 0.22, ... , "Weather/Temperature/Humidity/Wind-clean" : 0.55 }
         
         """
-        pass
+        return { "Weather-clean" : 0.13, "Weather/Temperature-clean" : 0.15,"Weather/Temperature/Humidity/Wind-clean" : 0.16 }
     
     def getRuleNum(self) -> dict:
         """
@@ -88,7 +93,7 @@ class summary:
         
         """
 
-        pass
+        return { "Weather-clean" : 3, "Weather/Temperature-clean" : 5,"Weather/Temperature/Humidity/Wind-clean" : 6 }
     
     def getSimplicity(self) -> dict:
         """
@@ -100,7 +105,7 @@ class summary:
         
         """
 
-        pass
+        return { "Weather-clean" : 13, "Weather/Temperature-clean" : 15,"Weather/Temperature/Humidity/Wind-clean" : 16 }
     
     def getChiSquareList(self) -> list:
         """
@@ -108,25 +113,59 @@ class summary:
         
         return : (list) (已經排好的大盜小)
         
-        e.g: ["Weather-5","Temperature-4", "Humidity-3","Wind-2"]
+        e.g: [ ["Weather",5],["Temperature",4],["Humidity",3],["Wind",2] ]
         
         """
+        
+        sortedList=[]
+        data = raw_data(sourceFile=self.sourceCsv)
+        for feature in data.data_features.values():
+            if(feature.feature_con_domain==None):
+                pass
+            else:
+                sortedList.append([feature.feature_name,feature.feature_chi_square])
+        
+        sortedList= sorted(sortedList, key=itemgetter(1),reverse=True)
+        # print(sortedList)
 
-        pass
+        
+
+        return sortedList
     
-    def getOtherNums(self) -> None:
+    def getOtherNums(self) :
         """
         算資料筆數，不用回傳
         """
+        self.dataNums=len(self.sourceCsv.index) 
+        self.attrNums=len(self.sourceCsv.columns)-1
+        # return self.dataNums,self.attrNums
 
-        pass
     
-    def exportResult(self) -> None:
+    def exportResult(self,exportFileName) -> None:
         """
         輸出output
         檔名 = 舊黨名_Summary.csv
         """
-        pass
+        
+        with open(exportFileName,encoding='utf-8-sig',newline='',mode='w')as out:
+            self.getOtherNums()
+            sortedList=self.getChiSquareList()
+            imcomRatio=self.getImcomRatio()
+            ruleNum=self.getRuleNum()
+            simplicity=self.getSimplicity()
+            out.write("資料比數,"+str(self.dataNums)+"\n")
+            out.write("特徵數,"+str(self.attrNums)+"\n")
+            out.write("Class分配\n")
+            out.write("特徵卡方直與排序(大到小)")
+            for one in sortedList:
+                out.write(","+one[0]+"-"+str(one[1])+"\n")
+            out.write(",不相容率,規則數,精簡度\n")
+            
+            for key in imcomRatio.keys():
+                out.write(key+","+str(imcomRatio[key])+","+str(ruleNum[key])+","+str(simplicity[key])+"\n")
+
+            
+        
     
     
     
