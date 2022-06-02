@@ -62,7 +62,7 @@ def main():
 
 class summary:
     
-    def __init__(self,filePath) -> None:
+    def __init__(self,filePath) ->None:
         self.sourceCsv=pd.read_csv(filePath)
         pass
     
