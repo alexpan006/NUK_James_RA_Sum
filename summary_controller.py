@@ -1,5 +1,7 @@
 import pandas as pd
 from libs.chi_square_module import raw_data
+from libs.analysis_stage1 import exportUncleanData as exportUnclean
+from libs.analysis_stage1 import csvAnalyzeData as csvAnalyze
 from operator import itemgetter
 
 
@@ -69,6 +71,9 @@ class summary:
         self.sourceCsv=pd.read_csv(filePath)
         self.dataNums=0
         self.attrNums=0
+        self.cleanDatas = []
+        self.header = []
+        self.simplicity = {}
         pass
     
     
@@ -81,7 +86,28 @@ class summary:
         e.g: { "Weather-clean" : 0.11, "Weather/Temperature-clean" : 0.22, ... , "Weather/Temperature/Humidity/Wind-clean" : 0.55 }
         
         """
-        return { "Weather-clean" : 0.13, "Weather/Temperature-clean" : 0.15,"Weather/Temperature/Humidity/Wind-clean" : 0.16 }
+        imcomRatioDict = {}
+        header = []
+        for row in self.sourceCsv:
+            self.header.append(row)
+        # print(self.sourceCsv[[header[0],header[-1]]])
+        for col in range(0,len(self.header) - 1):
+            tempList = self.header[0:col+1]
+            tempList.append(self.header[-1])
+            # print(self.sourceCsv[tempList])
+            uncleanRate, cleanData = exportUnclean(self.sourceCsv[tempList])
+            self.cleanDatas.append(cleanData)
+            tempStr = ''
+            for item in self.header[0:col+1]:
+                tempStr += item + '/'
+            tempStr = tempStr.rstrip('/') + '-clean'
+            imcomRatioDict[tempStr] = uncleanRate
+            # print(f'{tempStr}:{uncleanRate}')
+        # uncleanRate, cleanData = exportUnclean(self.sourceCsv)
+        # print(imcomRatioDict)
+        return imcomRatioDict
+        
+        # return { "Weather-clean" : 0.13, "Weather/Temperature-clean" : 0.15,"Weather/Temperature/Humidity/Wind-clean" : 0.16 }
     
     def getRuleNum(self) -> dict:
         """
@@ -92,8 +118,20 @@ class summary:
         e.g: { "Weather-clean" : 3, "Weather/Temperature-clean" : 5, ... , "Weather/Temperature/Humidity/Wind-clean" : 6 }
         
         """
+        ruleNumDict = {}
+        for cleanData in self.cleanDatas:
+            ruleSum, sim = csvAnalyze(cleanData)
+            tempStr = ''
+            for item in cleanData:
+                if item == self.header[-1]:
+                    break
+                tempStr += item + '/'
+            tempStr = tempStr.rstrip('/') + '-clean'
+            ruleNumDict[tempStr] = ruleSum
+            self.simplicity[tempStr] = sim
 
-        return { "Weather-clean" : 3, "Weather/Temperature-clean" : 5,"Weather/Temperature/Humidity/Wind-clean" : 6 }
+        return ruleNumDict
+        # return { "Weather-clean" : 3, "Weather/Temperature-clean" : 5,"Weather/Temperature/Humidity/Wind-clean" : 6 }
     
     def getSimplicity(self) -> dict:
         """
@@ -104,8 +142,8 @@ class summary:
         e.g: { "Weather-clean" : 13, "Weather/Temperature-clean" : 15, ... , "Weather/Temperature/Humidity/Wind-clean" : 16 }
         
         """
-
-        return { "Weather-clean" : 13, "Weather/Temperature-clean" : 15,"Weather/Temperature/Humidity/Wind-clean" : 16 }
+        return self.simplicity
+        # return { "Weather-clean" : 13, "Weather/Temperature-clean" : 15,"Weather/Temperature/Humidity/Wind-clean" : 16 }
     
     def getChiSquareList(self) -> list:
         """
