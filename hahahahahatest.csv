@@ -1,0 +1,15 @@
+﻿ID,A,B,C,D,E,Class,Deep,Support,Reliability,Class Distribution,Simplicity
+R1,Cloud,Moderate,,,,Good,2,1,1.0000,"1,0",0.50
+R2,Cloud,Hot,High,,,Good,3,1,1.0000,"1,0",0.33
+R3,Cloud,Hot,Normal,,,Good,3,2,1.0000,"2,0",0.67
+R4,Rainy,Moderate,Normal,,,Good,3,1,1.0000,"1,0",0.33
+R5,Sunny,Hot,Normal,,,Good,3,1,1.0000,"1,0",0.33
+R6,Sunny,Moderate,High,,,No,3,1,1.0000,"0,1",0.33
+R7,Sunny,Moderate,Normal,,,Good,3,1,1.0000,"1,0",0.33
+R8,Rainy,Hot,Normal,No,,Good,4,1,1.0000,"1,0",0.25
+R9,Rainy,Hot,Normal,Yes,,No,4,1,1.0000,"0,1",0.25
+R10,Rainy,Moderate,High,No,,Good,4,1,1.0000,"1,0",0.25
+R11,Rainy,Moderate,High,Yes,,No,4,1,1.0000,"0,1",0.25
+R12,Sunny,Hot,High,No,,No,4,1,1.0000,"0,1",0.25
+R13,Sunny,Hot,High,Yes,,No,4,1,1.0000,"0,1",0.25
+,,,,,,,,1.0769,1.0000,,4.3333

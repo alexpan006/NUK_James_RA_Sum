@@ -6,6 +6,7 @@ Class分配
 ,Wind-1.9980246913580242
 ,Temperature-0.025925925925925894
 ,不相容率,規則數,精簡度
-Weather-clean,0.13,3,13
-Weather/Temperature-clean,0.15,5,15
-Weather/Temperature/Humidity/Wind-clean,0.16,6,16
+Weather-clean,0.2857142857142857,4,10.0
+Weather/Temperature-clean,0.42857142857142855,5,6.0
+Weather/Temperature/Humidity-clean,0.2857142857142857,9,4.166666666666667
+Weather/Temperature/Humidity/Wind-clean,0.0,14,4.333333333333334

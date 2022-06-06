@@ -1,0 +1,7 @@
+﻿RID,Weather,Temperature,Humidity,Wind,Class,Deep,Support,Reliability,Class Distribution,Simplicity
+1,Rainy,,,No,Good,2.0,3,1.0,"3,0",1.5
+2,Rainy,,,Yes,No,2.0,2,1.0,"0,2",1.0
+3,Sunny,,High,,No,2.0,3,1.0,"0,3",1.5
+4,Sunny,,Normal,,Good,2.0,2,1.0,"2,0",1.0
+5,Cloud,,,,Good,1.0,4,1.0,"4,0",4.0
+,,,,,,,14,,,9.0
