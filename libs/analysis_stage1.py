@@ -237,45 +237,45 @@ def csvAnalyzeData(sourceFile):
     header.append("Class Distribution")
     header.append("Simplicity")
     #End of Header treatment#
-    newFileName='./hahahahahatest.csv'
-    with open(newFileName,'w',encoding='utf-8-sig',newline="") as f1:
-        writer=csv.writer(f1)
-        writer.writerow(header)
-        ruleIndex=1
-        avgSupport=0
-        avgReliability=0
-        totalSim=0
-        for unit in trueData:
-            ruleCount="R"+str(ruleIndex)
-            oneRow=[]
-            oneRow.append(ruleCount)
-            for i in unit.primaryKeys:
-                oneRow.append(str(i))
-            for x in range(0,conditionCount-len(unit.primaryKeys)):
-                oneRow.append("")
-            oneRow.append(unit.finalClass)
-            oneRow.append(unit.deep)
-            oneRow.append(unit.support)
-            oneRow.append(unit.reliabiltyDisplay)
-            oneRow.append(unit.classDistributionOutput)
-            oneRow.append(unit.simplicityDisplay)
-            totalSim+=unit.simplicity
-            avgSupport+=unit.support
-            avgReliability+=unit.reliabilty
-            writer.writerow(oneRow)
-            ruleIndex+=1
-        avgSupport/=len(trueData)
-        avgReliability/=len(trueData)
-        avgSupport=round(avgSupport,4)
-        avgReliability=round(avgReliability,4)
-        lastRow=[]
-        for i in range(0,conditionCount+3):
-            lastRow.append("")
-        lastRow.append(format(avgSupport,'.4f'))
-        lastRow.append(format(avgReliability,'.4f'))
+    # newFileName='./hahahahahatest.csv'
+    # with open(newFileName,'w',encoding='utf-8-sig',newline="") as f1:
+        # writer=csv.writer(f1)
+        # writer.writerow(header)
+    ruleIndex=1
+    avgSupport=0
+    avgReliability=0
+    totalSim=0
+    for unit in trueData:
+        ruleCount="R"+str(ruleIndex)
+        oneRow=[]
+        oneRow.append(ruleCount)
+        for i in unit.primaryKeys:
+            oneRow.append(str(i))
+        for x in range(0,conditionCount-len(unit.primaryKeys)):
+            oneRow.append("")
+        oneRow.append(unit.finalClass)
+        oneRow.append(unit.deep)
+        oneRow.append(unit.support)
+        oneRow.append(unit.reliabiltyDisplay)
+        oneRow.append(unit.classDistributionOutput)
+        oneRow.append(unit.simplicityDisplay)
+        totalSim+=unit.simplicity
+        avgSupport+=unit.support
+        avgReliability+=unit.reliabilty
+        # writer.writerow(oneRow)
+        ruleIndex+=1
+    avgSupport/=len(trueData)
+    avgReliability/=len(trueData)
+    avgSupport=round(avgSupport,4)
+    avgReliability=round(avgReliability,4)
+    lastRow=[]
+    for i in range(0,conditionCount+3):
         lastRow.append("")
-        lastRow.append(format(totalSim,'.4f') )
-        writer.writerow(lastRow)
+    lastRow.append(format(avgSupport,'.4f'))
+    lastRow.append(format(avgReliability,'.4f'))
+    lastRow.append("")
+    lastRow.append(format(totalSim,'.4f') )
+    # writer.writerow(lastRow)
     return ruleIndex, totalSim
 
 
