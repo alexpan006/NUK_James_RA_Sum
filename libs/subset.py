@@ -88,11 +88,12 @@ class subset:
         
         
     def getResult(self):
-        print("primary keys ==>",self.primaryKeys)
-        print('final class ==>',self.finalClass)
-        print('deep ==>',self.deep)
-        print('support ==>',self.support)
-        print('reliability ==>',self.reliabilty)
-        print('class distribution ==>',self.classDistribution)
-        print('condition ==>',self.conditions)
+        # print("primary keys ==>",self.primaryKeys)
+        # print('final class ==>',self.finalClass)
+        # print('deep ==>',self.deep)
+        # print('support ==>',self.support)
+        # print('reliability ==>',self.reliabilty)
+        # print('class distribution ==>',self.classDistribution)
+        # print('condition ==>',self.conditions)
+        pass
         

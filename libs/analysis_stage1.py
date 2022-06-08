@@ -221,7 +221,7 @@ def csvAnalyzeData(sourceFile):
         unit.setClassDistribution(classSorted)
         unit.setAllOther()
         unit.getResult()
-        print('---------------')
+        # print('---------------')
     
     trueData.sort() #Sort data 
     header=[]

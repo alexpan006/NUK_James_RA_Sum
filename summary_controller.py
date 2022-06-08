@@ -1,3 +1,4 @@
+from numpy import source
 import pandas as pd
 from libs.chi_square_module import raw_data
 from libs.analysis_stage1 import exportUncleanData as exportUnclean
@@ -60,7 +61,8 @@ _summary_
 def main():
     sum=summary("./Weather-排序.csv")
     sum.exportResult("./Weather-Summary.csv")
-    #print(sum.getImcomRatio) #測試印出不相容率
+    # sum.getOtherNums()
+    # print(sum.getImcomRatio) #測試印出不相容率
     
     pass
 
@@ -71,6 +73,7 @@ class summary:
         self.sourceCsv=pd.read_csv(filePath)
         self.dataNums=0
         self.attrNums=0
+        self.classNums={}
         self.cleanDatas = []
         self.header = []
         self.simplicity = {}
@@ -176,6 +179,18 @@ class summary:
         """
         self.dataNums=len(self.sourceCsv.index) 
         self.attrNums=len(self.sourceCsv.columns)-1
+        for one in self.sourceCsv[self.sourceCsv.columns[-1]]:
+            if one not in self.classNums:
+                self.classNums[one]=1
+            else:
+                self.classNums[one]+=1
+        
+        tempTotal=0
+        for v in self.classNums.values():
+            tempTotal+=v
+        for key in self.classNums.keys():
+            self.classNums[key]=tuple([self.classNums[key],self.classNums[key]/tempTotal])
+        # print(self.classNums)
         # return self.dataNums,self.attrNums
 
     
@@ -186,17 +201,25 @@ class summary:
         """
         
         with open(exportFileName,encoding='utf-8-sig',newline='',mode='w')as out:
-            self.getOtherNums()
-            sortedList=self.getChiSquareList()
-            imcomRatio=self.getImcomRatio()
-            ruleNum=self.getRuleNum()
-            simplicity=self.getSimplicity()
+            # imcomRatio={ "Weather-clean" : 13, "Weather/Temperature-clean" : 15,  "Weather/Temperature/Humidity/Wind-clean" : 16 }
+            # ruleNum={ "Weather-clean" : 3, "Weather/Temperature-clean" : 5,  "Weather/Temperature/Humidity/Wind-clean" : 6 }
+            # simplicity={ "Weather-clean" : 30, "Weather/Temperature-clean" : 54,  "Weather/Temperature/Humidity/Wind-clean" : 60 }
+            try:
+                self.getOtherNums()
+                sortedList=self.getChiSquareList()
+                imcomRatio=self.getImcomRatio()
+                ruleNum=self.getRuleNum()
+                simplicity=self.getSimplicity()
+            except Exception as err:
+                err.with_traceback()
             out.write("資料比數,"+str(self.dataNums)+"\n")
             out.write("特徵數,"+str(self.attrNums)+"\n")
-            out.write("Class分配\n")
+            out.write("Class分配")
+            for k,v in self.classNums.items():
+                out.write(","+str(k)+","+str(v[0])+","+str(v[1])+"\n")
             out.write("特徵卡方直與排序(大到小)")
             for one in sortedList:
-                out.write(","+one[0]+"-"+str(one[1])+"\n")
+                out.write(","+one[0]+"-clean-"+str(one[1])+"\n")
             out.write(",不相容率,規則數,精簡度\n")
             
             for key in imcomRatio.keys():
