@@ -1,0 +1,15 @@
+﻿資料比數,19
+特徵數,5
+Class分配,Good,11,0.5789473684210527
+,No,8,0.42105263157894735
+特徵卡方直與排序(大到小),Wind-clean-3.909496753246753
+,Temperature-clean-1.2690656565656566
+,Humidity-clean-1.0281385281385278
+,AQI-clean-1.0281385281385278
+,Weather-clean-0.3444264069264069
+,不相容率,規則數,精簡度
+Wind-clean,0.2631578947368421,3,14.0
+Wind/Temperature-clean,0.3684210526315789,4,9.5
+Wind/Temperature/Humidity-clean,0.47368421052631576,5,7.666666666666666
+Wind/Temperature/Humidity/Weather-clean,0.0,17,4.916666666666666
+Wind/Temperature/Humidity/Weather/AQI-clean,0.0,17,4.916666666666666
