@@ -72,8 +72,9 @@ class clean_data:
     clean_data=pd.DataFrame()
     result={} #最終輸出dict 藥用dict to 
     policy = pd.DataFrame()
+    output = pd.DataFrame()
 
-    def __init__(self,primary_keys=None,clean_data=None,original_header=None,conclusions=None,support=None):
+    def __init__(self,primary_keys=None,clean_data=None,original_header=None,conclusions=None,support=None,output = None):
         self.reset_all()
         self.policy= pd.DataFrame()
         self.clean_data=pd.DataFrame()
@@ -82,13 +83,14 @@ class clean_data:
         self.clean_data=clean_data #是pd.DataFrame()
         self.conclusions=conclusions
         self.support=support #Support
+        self.output = output
         
         '''
         要去掉中繼資料ㄉ話這裡可以讀到-分析後.csv那個file_path就行ㄌ，直接弄掉就好
         '''    
-        for col in pd.read_csv('中繼資料.csv',encoding='utf-8-sig').columns: 
-            self.policy[col] = [""]
-    
+        # for col in output: 
+        #     self.policy[col] = [""]
+        
     #Reset所有參數
     def reset_all(self):
         self.original_header=list()
@@ -102,11 +104,12 @@ class clean_data:
         self.clean_data=pd.DataFrame()
         self.result={} #最終輸出dict 藥用dict to 
         self.policy = pd.DataFrame()
+        self.output = pd.DataFrame()
         
 
-    def cal_all(self,result_filepath):
+    def cal_all(self, output):
         #處理最後輸出位置
-        new_path=result_filepath.replace('.csv','-分析後.csv')
+        # new_path=result_filepath.replace('.csv','-分析後.csv')
         
         self.deep=len(self.primary_keys)-1 #Deep
         self.simplicity=self.support/self.deep #Simplicity
@@ -138,24 +141,24 @@ class clean_data:
             else:
                 self.result[k]=v
             count+=1
-            
         # 全部加到 result dict李
         self.result["Deep"]=self.deep
         self.result["Support"]=self.support
         self.result["Reliability"]=self.reliability
         self.result["Class Distribution"]=self.class_distribution
         self.result["Simplicity"]=self.simplicity
-        self.result["RID"] = len(pd.read_csv(new_path,encoding='utf-8-sig')) + 1
-        for key in self.result.keys():
-            self.policy[key] = self.result[key]
-        
-        self.policy.to_csv(new_path, mode = 'a', header = False, index = False,encoding='utf-8-sig') #輸出用append的方式家道csv
+        self.result["RID"] = self.output.shape[0] + 1
+        # for key in self.result.keys():
+        #     self.policy[key] = self.result[key]
+        self.output.loc[self.output.shape[0]] = self.result
+        # print(self.output)
+        # self.policy.to_csv(new_path, mode = 'a', header = False, index = False,encoding='utf-8-sig') #輸出用append的方式家道csv
 
         
     def export_result(self,result_filepath):
         #處理最後輸出位置
         new_path = result_filepath.replace('.csv','-分析後.csv')
-        self.cal_all(result_filepath)
+        self.cal_all(self.output)
         # print(self.primary_keys,'===>',self.class_distribution)
 
 class raw_data:
@@ -172,20 +175,23 @@ class raw_data:
     clean_subsets=[] #其他的clean subset 裡面存 clean_data class
     unclean_subsets=[]  #其他的unclean subset 裡面存raw_data class
     is_Head=False #是否是開頭
+    outputData = pd.DataFrame() # 存放output
     
     export_gainA = attr_gaiaA()
     #建構子
-    def __init__(self,file_path=None,dataframe=None,primary_keys=None,is_Head=False):
+    def __init__(self,file_path=None,dataframe=None,primary_keys=None,is_Head=False,first = False):
         '''
         先判定是否需要讀csv,若不用就直接用現有dataframe建立
         之後就先建立attri字典
         '''
         self.reset_all()
+        if first:
+            self.outputData = pd.DataFrame() # reset output data
         #直接相等會讓primary_keys的型態變成None
         if(primary_keys!=None):
             self.primary_keys=primary_keys #傳入primary key會是dict
         self.is_Head=is_Head
-        self.load_data(file_path=file_path,data=dataframe)
+        self.load_data(file_path=file_path,data=dataframe,first=first)
         self.sort_attri_order() #排序gainA
         self.reorder_raw_source() #依照attribute的gainA去重新排列data
         self.extract_to_subsets()  #分離clean與unclean資料
@@ -204,7 +210,9 @@ class raw_data:
         self.export_gainA.file_path = ''
         is_Head=False #是否是開頭
         
-        
+    def get_ruleSum_sim(self):
+        print(self.outputData)
+        return self.outputData['RID'].max(), self.outputData['Simplicity'].sum()
     #分離unclean跟clean資料
     def extract_to_subsets(self):
         '''
@@ -249,14 +257,15 @@ class raw_data:
                 temp_primary_k_clean=dict(self.primary_keys)    #處理primary key
                 temp_primary_k_clean[clean.columns[0]]=(clean[clean.columns[0]][0])
                 temp_primary_k_clean[clean.columns[-1]]=(clean[clean.columns[-1]][0])
-                self.clean_subsets.append(clean_data(primary_keys=temp_primary_k_clean,original_header=self.original_header,clean_data=clean,conclusions=list(self.conclusions.keys()),support=clean.shape[0]))
+                self.clean_subsets.append(clean_data(primary_keys=temp_primary_k_clean,original_header=self.original_header,clean_data=clean,conclusions=list(self.conclusions.keys()),support=clean.shape[0], output = self.outputData))
                 
                     
         if(len(temp_dict_series_dataframe_unclean) != 0):
             for unclean in dict(temp_dict_series_dataframe_unclean).values(): #匯出unclean data,記得刪除第一航並加primary key(一個list)
                 temp_primary_k_unclean=dict(self.primary_keys)  #處理primary key
                 temp_primary_k_unclean[unclean.columns[0]]=(unclean[unclean.columns[0]][0])
-                self.unclean_subsets.append(raw_data(file_path=None,dataframe=(unclean.drop(columns=unclean.columns[0])),primary_keys=temp_primary_k_unclean))
+                self.unclean_subsets.append(raw_data(file_path=None,dataframe=(unclean.drop(columns=unclean.columns[0])),primary_keys=temp_primary_k_unclean, first = True))
+                print('Im coming')
         
     #排序gainA
     def sort_attri_order(self):
@@ -269,15 +278,10 @@ class raw_data:
         self.raw_source=self.raw_source.sort_values(self.raw_source.columns[0],ascending=True)
     
     #載入df回傳effect_attributes
-    def load_data(self, file_path = None, data = None):
-        if file_path == None: #不用讀csv
-            self.raw_source = data
-        else:
-            self.raw_source = pd.read_csv(file_path,encoding='utf-8-sig') #讀檔
+    def load_data(self, file_path = None, data = None, first = False):
+        self.raw_source = data
+        if first:
             policy = pd.DataFrame()
-            # 設定clean_data的data
-            # clean_data.data = self.raw_source
-            # 初始化policy(export)的dataframe
             policy['RID'] = []
             for effect in self.raw_source.columns[:-1]:
                 policy[effect] = []
@@ -287,10 +291,29 @@ class raw_data:
             policy['Reliability'] = []
             policy['Class Distribution'] = []
             policy['Simplicity'] = []
+            self.outputData = policy
+
+        # if file_path == None: #不用讀csv
+        #     self.raw_source = data
+        # else:
+        #     self.raw_source = pd.read_csv(file_path,encoding='utf-8-sig') #讀檔
+        #     policy = pd.DataFrame()
+        #     # 設定clean_data的data
+        #     # clean_data.data = self.raw_source
+        #     # 初始化policy(export)的dataframe
+            # policy['RID'] = []
+            # for effect in self.raw_source.columns[:-1]:
+            #     policy[effect] = []
+            # policy['Class'] = []
+            # policy['Deep'] = []
+            # policy['Support'] = []
+            # policy['Reliability'] = []
+            # policy['Class Distribution'] = []
+            # policy['Simplicity'] = []
             
-            output_filename = file_path.replace('.csv','-分析後.csv')
-            policy.to_csv(output_filename, index = False,encoding='utf-8-sig')
-            policy.to_csv('中繼資料.csv', index = False,encoding='utf-8-sig')
+            # output_filename = file_path.replace('.csv','-分析後.csv')
+            # policy.to_csv(output_filename, index = False,encoding='utf-8-sig')
+            # policy.to_csv('中繼資料.csv', index = False,encoding='utf-8-sig')
 
         self.original_header=self.raw_source.columns
         self.s_col = self.raw_source.columns[-1] #直接這樣就好惹  記錄結論的欄位名
@@ -466,9 +489,7 @@ class effect_attribute:
         
 
 def main():
-    panMain()
-    # cccMain()
-    
+    panMain()    
 
 def panMain():
     test=raw_data(file_path='./Weather-MoreData.csv',is_Head=True)# pan
@@ -478,25 +499,8 @@ def panMain():
     
     pass
 
-# def cccMain():
-#     data = raw_data(file_path = './觀測天氣之資料表.csv')
-#     # test = pd.read_csv('./觀測天氣之資料表.csv')
-#     # attr = data.load_data(file_path = './觀測天氣之資料表.csv')
-#     attr = data.load_data(file_path = './觀測天氣之資料表.csv')
-#     for sub_attr in attr:
-#         print(attr[sub_attr].effect_attr_name)
-#         print('attribute_info:')
-#         print(attr[sub_attr].attr_info)
-#         print('gainA')
-#         print(attr[sub_attr].gainA)
-#     clean_data = clean_data()
-#     print(clean_data.export_result())
-
-
 if __name__ == "__main__":
     main()
-
-
 
 #檢查CSV是否符合規則
 def csvValidCheck(filename):
@@ -521,8 +525,7 @@ def csvValidCheck(filename):
                         return False,"csv檔第  "+str(index)+"  行有欄位為空\n"
             index+=1
         return True,"csv檔檢查通過,符合格式\n"
-    
-    
+      
 #分離相容與不相容資料    
 def exportUncleanDataNew(sourceFile, tolerance = 0.6):
     classSorted={} # { ['晴朗','炎熱','高','無'] : subset(..), ['晴朗','炎熱','高','有'] : subset(..) }

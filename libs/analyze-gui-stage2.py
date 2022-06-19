@@ -49,7 +49,10 @@ class analyzeGui:
     def startAnalyze(self, sourceFile):
         # source = raw_data(dataframe = sourceFile)
         # result = source.export_result(sourceFile)
-        result = raw_data(dataframe = sourceFile).export_result()
+        result = raw_data(dataframe = sourceFile).export_result('temp_data.csv')
+        data = pd.read_csv('temp_data.csv')
+        print(data)
+        
         resultToken=False
         if(self.filename==""):
             self.writeToMiniConsole('還沒有選擇欲分析的csv檔\n')

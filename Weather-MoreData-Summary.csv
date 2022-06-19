@@ -8,8 +8,8 @@ Class分配,Good,11,0.5789473684210527
 ,AQI-clean-1.0281385281385278
 ,Weather-clean-0.3444264069264069
 ,不相容率,規則數,精簡度
-Wind-clean,0.2631578947368421,3,14.0
-Wind/Temperature-clean,0.3684210526315789,4,9.5
-Wind/Temperature/Humidity-clean,0.47368421052631576,5,7.666666666666666
-Wind/Temperature/Humidity/Weather-clean,0.0,17,4.916666666666666
-Wind/Temperature/Humidity/Weather/AQI-clean,0.0,17,4.916666666666666
+Wind-clean,0.2631578947368421,2.0,14.0
+Wind/Temperature-clean,0.3684210526315789,2.0,12.0
+Wind/Temperature/Humidity-clean,0.47368421052631576,2.0,10.0
+Wind/Temperature/Humidity/Weather-clean,0.0,nan,0.0
+Wind/Temperature/Humidity/Weather/AQI-clean,0.0,nan,0.0

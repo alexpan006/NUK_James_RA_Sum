@@ -3,6 +3,7 @@ import pandas as pd
 from libs.chi_square_module import raw_data
 from libs.ID3 import exportUncleanDataNew as exportUnclean
 from libs.analysis_stage1 import csvAnalyzeData as csvAnalyze
+from libs.ID3 import raw_data as ID3_raw_data
 from operator import itemgetter
 
 
@@ -123,7 +124,10 @@ class summary:
         """
         ruleNumDict = {}
         for cleanData in self.cleanDatas:
-            ruleSum, sim = csvAnalyze(cleanData)
+            result = ID3_raw_data(dataframe = cleanData, first = True)
+            result.export_result('')
+            ruleSum, sim = result.get_ruleSum_sim()
+            # ruleSum, sim = csvAnalyze(cleanData)
             tempStr = ''
             for item in cleanData:
                 if item == self.header[-1]:
