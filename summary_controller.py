@@ -1,7 +1,7 @@
 from numpy import source
 import pandas as pd
 from libs.chi_square_module import raw_data
-from libs.analysis_stage1 import exportUncleanDataNew as exportUnclean
+from libs.ID3 import exportUncleanDataNew as exportUnclean
 from libs.analysis_stage1 import csvAnalyzeData as csvAnalyze
 from operator import itemgetter
 
