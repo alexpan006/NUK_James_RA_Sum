@@ -78,6 +78,9 @@ class summary:
         self.cleanDatas = []
         self.header = []
         self.simplicity = {}
+        self.subsetDataNums = {} # 資料筆數
+        self.extractRate = {} # 萃取率
+        self.ruleSimplicityRate = {} # 規則精簡率
         pass
     
     
@@ -136,7 +139,10 @@ class summary:
             tempStr = tempStr.rstrip('/') + '-clean'
             ruleNumDict[tempStr] = ruleSum
             self.simplicity[tempStr] = sim
-
+            self.subsetDataNums[tempStr] = len(cleanData)
+            self.extractRate[tempStr] = len(cleanData) / ruleSum
+            self.ruleSimplicityRate[tempStr] = sim / ruleSum
+            
         return ruleNumDict
         # return { "Weather-clean" : 3, "Weather/Temperature-clean" : 5,"Weather/Temperature/Humidity/Wind-clean" : 6 }
     

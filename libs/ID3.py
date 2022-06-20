@@ -179,7 +179,7 @@ class raw_data:
     
     export_gainA = attr_gaiaA()
     #建構子
-    def __init__(self,file_path=None,dataframe=None,primary_keys=None,is_Head=False,first = False):
+    def __init__(self,file_path=None,dataframe=None,primary_keys=None,is_Head=False,first = False, oldPolicy = None):
         '''
         先判定是否需要讀csv,若不用就直接用現有dataframe建立
         之後就先建立attri字典
@@ -191,7 +191,7 @@ class raw_data:
         if(primary_keys!=None):
             self.primary_keys=primary_keys #傳入primary key會是dict
         self.is_Head=is_Head
-        self.load_data(file_path=file_path,data=dataframe,first=first)
+        self.load_data(file_path=file_path,data=dataframe,first=first, oldPolicy = oldPolicy)
         self.sort_attri_order() #排序gainA
         self.reorder_raw_source() #依照attribute的gainA去重新排列data
         self.extract_to_subsets()  #分離clean與unclean資料
@@ -211,8 +211,8 @@ class raw_data:
         is_Head=False #是否是開頭
         
     def get_ruleSum_sim(self):
-        print(self.outputData)
-        return self.outputData['RID'].max(), self.outputData['Simplicity'].sum()
+        self.outputData.drop_duplicates(subset = self.outputData.columns[1:-5], keep = 'first', inplace = True)
+        return self.outputData['RID'].shape[0], self.outputData['Simplicity'].sum()
     #分離unclean跟clean資料
     def extract_to_subsets(self):
         '''
@@ -258,14 +258,15 @@ class raw_data:
                 temp_primary_k_clean[clean.columns[0]]=(clean[clean.columns[0]][0])
                 temp_primary_k_clean[clean.columns[-1]]=(clean[clean.columns[-1]][0])
                 self.clean_subsets.append(clean_data(primary_keys=temp_primary_k_clean,original_header=self.original_header,clean_data=clean,conclusions=list(self.conclusions.keys()),support=clean.shape[0], output = self.outputData))
-                
                     
         if(len(temp_dict_series_dataframe_unclean) != 0):
             for unclean in dict(temp_dict_series_dataframe_unclean).values(): #匯出unclean data,記得刪除第一航並加primary key(一個list)
                 temp_primary_k_unclean=dict(self.primary_keys)  #處理primary key
                 temp_primary_k_unclean[unclean.columns[0]]=(unclean[unclean.columns[0]][0])
-                self.unclean_subsets.append(raw_data(file_path=None,dataframe=(unclean.drop(columns=unclean.columns[0])),primary_keys=temp_primary_k_unclean, first = True))
-                print('Im coming')
+                tempOutput = raw_data(file_path=None,dataframe=(unclean.drop(columns=unclean.columns[0])),primary_keys=temp_primary_k_unclean, first = 'unclean', oldPolicy = self.outputData)
+
+                self.unclean_subsets.append(tempOutput)
+                tempOutput.export_result('')
         
     #排序gainA
     def sort_attri_order(self):
@@ -278,9 +279,9 @@ class raw_data:
         self.raw_source=self.raw_source.sort_values(self.raw_source.columns[0],ascending=True)
     
     #載入df回傳effect_attributes
-    def load_data(self, file_path = None, data = None, first = False):
+    def load_data(self, file_path = None, data = None, first = False, oldPolicy = None):
         self.raw_source = data
-        if first:
+        if first == True:
             policy = pd.DataFrame()
             policy['RID'] = []
             for effect in self.raw_source.columns[:-1]:
@@ -292,6 +293,8 @@ class raw_data:
             policy['Class Distribution'] = []
             policy['Simplicity'] = []
             self.outputData = policy
+        elif first == 'unclean':
+            self.outputData = oldPolicy
 
         # if file_path == None: #不用讀csv
         #     self.raw_source = data
