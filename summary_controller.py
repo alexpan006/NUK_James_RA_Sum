@@ -1,8 +1,9 @@
 from numpy import source
 import pandas as pd
 from libs.chi_square_module import raw_data
-from libs.analysis_stage1 import exportUncleanData as exportUnclean
+from libs.ID3 import exportUncleanDataNew as exportUnclean
 from libs.analysis_stage1 import csvAnalyzeData as csvAnalyze
+from libs.ID3 import raw_data as ID3_raw_data
 from operator import itemgetter
 
 
@@ -59,8 +60,8 @@ _summary_
 
 #測試執行ㄉ地方
 def main():
-    sum=summary("./Weather-排序.csv")
-    sum.exportResult("./Weather-Summary.csv")
+    sum=summary("./Weather-MoreData.csv")
+    sum.exportResult("./Weather-MoreData-Summary-test.csv")
     # sum.getOtherNums()
     # print(sum.getImcomRatio) #測試印出不相容率
     
@@ -77,6 +78,9 @@ class summary:
         self.cleanDatas = []
         self.header = []
         self.simplicity = {}
+        self.subsetDataNums = {} # 資料筆數
+        self.extractRate = {} # 萃取率
+        self.ruleSimplicityRate = {} # 規則精簡率
         pass
     
     
@@ -123,7 +127,10 @@ class summary:
         """
         ruleNumDict = {}
         for cleanData in self.cleanDatas:
-            ruleSum, sim = csvAnalyze(cleanData)
+            result = ID3_raw_data(dataframe = cleanData, first = True)
+            result.export_result('')
+            ruleSum, sim = result.get_ruleSum_sim()
+            # ruleSum, sim = csvAnalyze(cleanData)
             tempStr = ''
             for item in cleanData:
                 if item == self.header[-1]:
@@ -132,7 +139,10 @@ class summary:
             tempStr = tempStr.rstrip('/') + '-clean'
             ruleNumDict[tempStr] = ruleSum
             self.simplicity[tempStr] = sim
-
+            self.subsetDataNums[tempStr] = len(cleanData)
+            self.extractRate[tempStr] = len(cleanData) / ruleSum
+            self.ruleSimplicityRate[tempStr] = sim / ruleSum
+            
         return ruleNumDict
         # return { "Weather-clean" : 3, "Weather/Temperature-clean" : 5,"Weather/Temperature/Humidity/Wind-clean" : 6 }
     
@@ -220,10 +230,10 @@ class summary:
             out.write("特徵卡方直與排序(大到小)")
             for one in sortedList:
                 out.write(","+one[0]+"-clean-"+str(one[1])+"\n")
-            out.write(",不相容率,規則數,精簡度\n")
+            out.write(",不相容率,規則數,精簡度,資料比數,萃取率,規則精簡率\n")
             
             for key in imcomRatio.keys():
-                out.write(key+","+str(imcomRatio[key])+","+str(ruleNum[key])+","+str(simplicity[key])+"\n")
+                out.write(key+","+str(imcomRatio[key])+","+str(ruleNum[key])+","+str(simplicity[key])+","+str(self.subsetDataNums[key])+","+str(self.extractRate[key])+","+str(self.ruleSimplicityRate[key])+"\n")
 
             
         

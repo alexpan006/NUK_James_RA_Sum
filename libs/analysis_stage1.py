@@ -3,7 +3,8 @@ import csv
 from os import write
 import re
 from typing import Tuple
-from libs.subset import subset
+from libs.subsetExport import subset as exportsubset
+from libs.subsetAnalyze import subset as analyzesubset
 import string
 import pandas as pd
 
@@ -30,9 +31,9 @@ def csvValidCheck(filename):
             index+=1
         return True,"csv檔檢查通過,符合格式\n"
     
-def sortRuleRow(filename,newOrder):
+def sortRuleRow(filename, newOrder):
+
     theLastone=''
-    # print('這裡'+newOrder)
     if(newOrder=="" or newOrder==None):
         with open(filename,'r',encoding="utf-8-sig") as f1:
             header=''
@@ -77,34 +78,115 @@ def sortRuleRow(filename,newOrder):
         else:
             newOrder.append(theLastone.strip())
             newFileName=filename.replace('.csv','-sorted.csv')
-            # print('新規則')
-            # print(newOrder)
-            # print('新黨名:'+newFileName)
             df = pd.read_csv(filename)
             df_reorder = df[newOrder] # rearrange column here
             df_reorder.to_csv(newFileName, index=False)
             return True,'完成',newFileName,False
-        
-#分離不相容資料        
-def exportUncleanData(sourceFile, tolerance = 0.6):
-    header = []
-    allSubset=[] #The arrayList to store all the subset
-    classSorted={}
 
+def exportUncleanDataNew(sourceFile, tolerance = 0.6):
+    classSorted={} # { ['晴朗','炎熱','高','無'] : subset(..), ['晴朗','炎熱','高','有'] : subset(..) }
+    header=[] # [ '天氣','氣溫','濕度','風','結論' ]
     for row in sourceFile:
         header.append(row)
-
     for idx in range(0, len(sourceFile)):
-        # print(sourceFile[idx:idx+1])
-        temp = []
+        tempRow = []
         for item in header:
-            temp.append(sourceFile[item][idx])
-        tempResult=temp.pop()
-        if(tempResult not in classSorted):
-            classSorted[tempResult]=re.sub(r'\D','',tempResult)
-        allSubset.append(subset(temp,tempResult))
+            tempRow.append(sourceFile[item][idx])
+        if (tuple(tempRow[:-1]) not in classSorted):
+            tempSubset = exportsubset(tempRow, tolerance)
+            classSorted[tuple(tempRow[:-1])] = tempSubset
+        else:
+            classSorted[tuple(tempRow[:-1])].addData(tempRow)
+    # with open(sourceFile,'r',encoding="utf-8-sig") as f1:
+    #     index=0
+    #     lines=f1.readlines()
+    #     for line in lines:
+    #         if(index==0):
+    #             header=line.strip().split(',')
+    #         else:
+    #             oneRow=line.strip().split(',')
+    #             if( tuple(oneRow[:-1]) not in classSorted):
+    #                 tempSubset=subset(oneRow,tolerance)
+    #                 classSorted[tuple(oneRow[:-1])]=tempSubset
+    #             else:
+    #                 classSorted[tuple(oneRow[:-1])].addData(oneRow)
+    #         index+=1
+
+    # cleanDataFileName=sourceFile.replace('.csv','-clean.csv')
+    # uncleanDataFileName=sourceFile.replace('.csv','-unclean.csv')
     
+    #輸出檔案
+    newCleanData = []
+    newUncleanData = []
+    cleanDataSum = 0
+    uncleanDataSum = 0
+    for oneSubset in classSorted.values():
+        cleanData, uncleanData = oneSubset.exportCleanAndUncleanData()
+        if(cleanData != None):
+            # cleanWriter.writerows(cleanData)
+            for cData in cleanData:
+                if type(cData) == list:
+                    newCleanData.append(cData)
+                    cleanDataSum += 1
+                else:
+                    newCleanData.append(cleanData)
+                    cleanDataSum += len(cleanData)        
+                    break
+            # cleanDataSum += 1
+        if(uncleanData!= None):
+            # uncleanWriter.writerows(uncleanData)
+            for ucData in uncleanData:
+                if type(ucData) == list:
+                    newUncleanData.append(ucData)
+                    uncleanDataSum += 1
+                else:
+                    newUncleanData.append(uncleanData)
+                    uncleanDataSum += len(uncleanData)        
+                    break
+            # newUncleanData.append(uncleanData)
+            # uncleanDataSum += 1
+    uncleanRate = uncleanDataSum / (cleanDataSum + uncleanDataSum)
+
+    newCleanData = pd.DataFrame(newCleanData, columns = header)
+    newUncleanData  = pd.DataFrame(newUncleanData, columns = header)
+    return uncleanRate, newCleanData
+    # with open(cleanDataFileName,'w',encoding='utf-8-sig',newline='') as cleanF,open(uncleanDataFileName,'w',encoding='utf-8-sig',newline='') as uncleanF:
+    #     cleanWriter=csv.writer(cleanF)
+    #     uncleanWriter=csv.writer(uncleanF)
+    #     #先寫表頭
+    #     cleanWriter.writerow(header)
+    #     uncleanWriter.writerow(header)
+        
+    #     for oneSubset in classSorted.values():
+    #         cleanData, uncleanData = oneSubset.exportCleanAndUncleanData()
+    #         if(cleanData !=None):
+    #             cleanWriter.writerows(cleanData)
+    #         if(uncleanData!=None):
+    #             uncleanWriter.writerows(uncleanData)
+    # return cleanDataFileName, uncleanDataFileName, '', True
+
+        
+#分離不相容資料        
+def exportUncleanData(filename,tolerance):
+    allSubset=[] #The arrayList to store all the subset
+    classSorted={}
+    header=[]
+    with open(filename,'r',encoding="utf-8-sig") as f1:
+        index=0
+        lines=f1.readlines()
+        for line in lines:
+            if(index==0):
+                header=line.strip().split(',')
+            else:
+                temp=line.strip().split(',')
+                tempResult=temp.pop()
+                if(tempResult not in classSorted):
+                    classSorted[tempResult]=re.sub(r'\D','',tempResult)
+                allSubset.append(exportsubset(temp,tempResult))
+            index+=1
     classSorted=dict(sorted(classSorted.items(), key=lambda item: item[1])) #sort class name
+    
+    
     test={}
     for data in allSubset:
         if(tuple(data.conditions)  not in test):
@@ -136,25 +218,34 @@ def exportUncleanData(sourceFile, tolerance = 0.6):
         cleanDatas.append(cleanData)
         uncleanDatas.append(uncleanData)
         check+=1
-
-    newCleanData = []
-    newUncleanData = []
-    cleanDataSum = 0
-    uncleanDataSum = 0
-    for cleanSet in cleanDatas:
-        for oneCleanSet in cleanSet:
-            newCleanData.append(oneCleanSet)
-            cleanDataSum += 1
-    for uncleanSet in uncleanDatas:
-        for oneUncleanSet in uncleanSet:
-            newUncleanData.append(oneUncleanSet)
-            uncleanDataSum += 1
-    uncleanRate = uncleanDataSum / (cleanDataSum + uncleanDataSum)
-    # print(f'不相容率:{uncleanRate}')
-    newCleanData = pd.DataFrame(newCleanData, columns = header)
-    newUncleanData = pd.DataFrame(newUncleanData, columns = header)
-
-    return uncleanRate, newCleanData
+    cleanFileName=filename.replace('.csv','-clean.csv')
+    uncleanFileName=filename.replace('.csv','-unclean.csv')
+    try:
+        with open(cleanFileName,'w',encoding='utf-8-sig',newline='') as cleanf, open(uncleanFileName,'w',encoding='utf-8-sig',newline='') as uncleanf:
+            
+            cleanCount=0
+            uncleanCount=0
+            #先寫 clean data
+            writer1=csv.writer(cleanf)
+            writer1.writerow(header)
+            if(len(cleanDatas)!=0):
+                for oneCleanSet in cleanDatas:
+                    for one1 in oneCleanSet:
+                        writer1.writerow(one1)
+                        cleanCount+=1
+                
+            #在寫 unclean data
+            writer2=csv.writer(uncleanf)
+            writer2.writerow(header)
+            if(len(uncleanDatas)!=0):
+                for oneUncleanSet in uncleanDatas:
+                    for one2 in oneUncleanSet:
+                        writer2.writerow(one2)
+                        uncleanCount+=1
+    except Exception as err:
+        print('出錯',err)
+        return cleanFileName,uncleanFileName,'出錯'+err,False
+    return cleanFileName,uncleanFileName,'',True
     
 
 def csvAnalyzeData(sourceFile):
@@ -176,7 +267,7 @@ def csvAnalyzeData(sourceFile):
         tempResult=temp.pop()
         if(tempResult not in classSorted):
             classSorted[tempResult]=re.sub(r'\D','',tempResult)
-        allSubset.append(subset(temp,tempResult))
+        allSubset.append(analyzesubset(temp,tempResult))
     # with open(sourceFile,'r',encoding="utf-8-sig") as f1:
     #     index=0
     #     lines=f1.readlines()
