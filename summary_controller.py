@@ -84,7 +84,7 @@ class summary:
         pass
     
     
-    def getImcomRatio(self) -> dict:
+    def getImcomRatio(self,sortedCol) -> dict:
         """
         算不相容率
         
@@ -95,13 +95,18 @@ class summary:
         """
         imcomRatioDict = {}
         header = []
-        for row in self.sourceCsv:
+        # for row in self.sourceCsv:
+        #     self.header.append(row)
+        
+        for row in sortedCol:
             self.header.append(row)
+        self.header.append(self.sourceCsv.columns[-1])
+            
         # print(self.sourceCsv[[header[0],header[-1]]])
         for col in range(0,len(self.header) - 1):
             tempList = self.header[0:col+1]
             tempList.append(self.header[-1])
-            # print(self.sourceCsv[tempList])
+            # print(tempList)
             uncleanRate, cleanData = exportUnclean(self.sourceCsv[tempList])
             self.cleanDatas.append(cleanData)
             tempStr = ''
@@ -177,11 +182,10 @@ class summary:
                 sortedList.append([feature.feature_name,feature.feature_chi_square])
         
         sortedList= sorted(sortedList, key=itemgetter(1),reverse=True)
-        # print(sortedList)
 
-        
+        sortedCol=[x[0] for x in sortedList]
 
-        return sortedList
+        return sortedList,sortedCol
     
     def getOtherNums(self) :
         """
@@ -216,21 +220,21 @@ class summary:
             # simplicity={ "Weather-clean" : 30, "Weather/Temperature-clean" : 54,  "Weather/Temperature/Humidity/Wind-clean" : 60 }
             try:
                 self.getOtherNums()
-                sortedList=self.getChiSquareList()
-                imcomRatio=self.getImcomRatio()
+                sortedList,sortedCol=self.getChiSquareList()
+                imcomRatio=self.getImcomRatio(sortedCol=sortedCol)
                 ruleNum=self.getRuleNum()
                 simplicity=self.getSimplicity()
             except Exception as err:
-                err.with_traceback()
-            out.write("資料比數,"+str(self.dataNums)+"\n")
+                err.with_traceback
+            out.write("資料筆數,"+str(self.dataNums)+"\n")
             out.write("特徵數,"+str(self.attrNums)+"\n")
             out.write("Class分配")
             for k,v in self.classNums.items():
                 out.write(","+str(k)+","+str(v[0])+","+str(v[1])+"\n")
-            out.write("特徵卡方直與排序(大到小)")
+            out.write("特徵卡方值與排序(大到小)")
             for one in sortedList:
                 out.write(","+one[0]+"-clean-"+str(one[1])+"\n")
-            out.write(",不相容率,規則數,精簡度,資料比數,萃取率,規則精簡率\n")
+            out.write(",不相容率,規則數,精簡度,資料筆數,萃取率,規則精簡率\n")
             
             for key in imcomRatio.keys():
                 out.write(key+","+str(imcomRatio[key])+","+str(ruleNum[key])+","+str(simplicity[key])+","+str(self.subsetDataNums[key])+","+str(self.extractRate[key])+","+str(self.ruleSimplicityRate[key])+"\n")

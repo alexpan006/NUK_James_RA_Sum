@@ -1,0 +1,6 @@
+﻿RID,Wind,newAtt,Class,Deep,Support,Reliability,Class Distribution,Simplicity
+1,Yes,A,No,2.0,2,1.0,"0,2",1.0
+2,Yes,B,Good,2.0,1,1.0,"1,0",0.5
+3,Yes,C,No,2.0,3,1.0,"0,3",1.5
+4,No,,Good,1.0,8,1.0,"8,0",8.0
+,,,,,14,,,11.0
